@@ -3,77 +3,55 @@
 namespace App\Http\Controllers;
 
 use App\Models\Folder;
-use App\Models\File;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
 class FolderController extends Controller
 {
-    // Konstruktor: Pastikan hanya user yang terautentikasi yang bisa mengakses fungsi di Controller ini
-    public function __construct()
-    {
-        $this->middleware('auth');
-    }
-
-    // Fungsi untuk menampilkan daftar folder dan file
+    /**
+     * Menampilkan daftar folder Level 1 (tanpa parent) untuk user yang login.
+     */
     public function index(Folder $folder = null)
     {
-        $currentFolder = $folder;
+        // Mendapatkan ID user yang sedang login
         $userId = Auth::id();
 
-        // Tentukan ID induk yang sedang dilihat. 
-        // Jika $currentFolder is null (halaman utama), maka parent_id yang dicari adalah null.
-        $parentIdToSearch = $currentFolder ? $currentFolder->id : null;
-
-        // 1. Ambil folder anak (Sub-folders)
-        $folders = Folder::where('user_id', $userId) // Filter berdasarkan user yang sedang login
-            ->where('parent_id', $parentIdToSearch) // Kunci: Filter berdasarkan parent_id (NULL untuk Level 1)
-            ->withCount('children') // Untuk menghitung sub-folder
+        // Query untuk Folder Level 1 (parent_id = NULL)
+        // Pastikan hanya mengambil folder milik user saat ini
+        $folders = Folder::where('user_id', $userId)
+            ->whereNull('parent_id') // Filter hanya folder Level 1
+            ->latest() // Urutkan berdasarkan yang terbaru
             ->get();
-
-        // 2. Ambil file di folder saat ini
-        $files = File::where('user_id', $userId)
-            ->where('folder_id', $parentIdToSearch)
-            ->get();
-
-        // 3. Logika Breadcrumb (Navigasi)
-        $breadcrumbPath = collect();
-        $tempFolder = $currentFolder;
-
-        // Melakukan loop ke atas (parent) untuk membangun path
-        while ($tempFolder) {
-            $parent = $tempFolder->parent; // Menggunakan relasi parent() yang sudah kita definisikan
             
-            if ($parent) {
-                 // Menambahkan di depan agar urutannya dari root ke bawah
-                $breadcrumbPath->prepend($parent);
-            }
-            // Lanjut ke folder induk berikutnya, atau berhenti jika sudah di root (parent_id null)
-            $tempFolder = $parent;
-        }
+        // Jika Anda ingin mengambil file-file di folder Level 1 (saat folder belum diklik)
+        // Kita lewati dulu, fokus ke folder dulu.
 
-        return view('folders.index', compact('folders', 'files', 'currentFolder', 'breadcrumbPath'));
+        // Melewatkan data folder ke view
+        return view('folders.index', [
+            'currentFolder' => null, // Karena ini tampilan Level 1, tidak ada parent
+            'folders' => $folders,
+        ]);
     }
 
-    // Fungsi untuk menyimpan folder baru
+    /**
+     * Menyimpan folder baru.
+     */
     public function store(Request $request)
     {
         $request->validate([
             'name' => 'required|string|max:255',
-            // parent_id harus ada di tabel folders jika tidak NULL
-            'parent_id' => 'nullable|exists:folders,id', 
+            // parent_id akan NULL jika ini folder Level 1
+            'parent_id' => 'nullable|exists:folders,id',
         ]);
 
         $folder = new Folder();
+        $folder->user_id = Auth::id(); // Wajib diisi user ID
         $folder->name = $request->name;
-        $folder->parent_id = $request->parent_id;
-        $folder->user_id = Auth::id(); // PENTING: Kaitkan dengan user yang login
+        $folder->parent_id = $request->parent_id; 
         $folder->save();
 
-        // Arahkan kembali ke folder induk atau halaman utama (jika parent_id null)
-        $redirectId = $request->parent_id ?? null;
-        
-        return redirect()->route('folders.index', $redirectId)
+        // Redirect kembali ke halaman folder utama
+        return redirect()->route('folders.index')
             ->with('success', 'Folder "' . $folder->name . '" berhasil dibuat.');
     }
 }

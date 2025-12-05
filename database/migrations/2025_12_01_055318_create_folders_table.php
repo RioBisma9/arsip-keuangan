@@ -13,20 +13,15 @@ return new class extends Migration
     {
         Schema::create('folders', function (Blueprint $table) {
             $table->id();
-            $table->string('name'); // Nama folder (e.g., UP Bendahara, 2024, Box 1)
             
-            // Kolom krusial untuk struktur Parent-Child:
-            // Ini akan menunjuk ke ID folder induknya.
-            // Nullable() artinya boleh kosong, ini untuk folder Level 1 (root).
-            $table->unsignedBigInteger('parent_id')->nullable(); 
+            // KOLOM PENTING 1: Kepemilikan User
+            $table->foreignId('user_id')->constrained('users')->cascadeOnDelete();
             
-            // foreignId adalah cara cepat Laravel untuk membuat kolom FK.
-            // onDelete('cascade') artinya jika folder induk dihapus, anak-anaknya juga dihapus.
-            $table->foreign('parent_id')
-                  ->references('id')
-                  ->on('folders')
-                  ->onDelete('cascade');
-                  
+            $table->string('name');
+            
+            // KOLOM PENTING 2: Hubungan Parent (bisa null untuk folder utama)
+            $table->foreignId('parent_id')->nullable()->constrained('folders')->cascadeOnDelete();
+            
             $table->timestamps();
         });
     }

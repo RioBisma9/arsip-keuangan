@@ -2,8 +2,6 @@
 
 namespace Database\Seeders;
 
-use App\Models\User;
-use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 
 class DatabaseSeeder extends Seeder
@@ -13,10 +11,14 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
-        // Panggil seeder kita
+        // Panggil UserSeeder terlebih dahulu
+        // Ini memastikan tabel 'users' terisi dan 'FolderSeeder' bisa mendapatkan user_id
         $this->call([
-            // UserSeeder::class, // Jika Anda ingin membuat user login awal
+            UserSeeder::class, // WAJIB DIJALANKAN PERTAMA
             FolderSeeder::class,
+            // Jika ada FileSeeder, letakkan di sini juga setelah FolderSeeder
         ]);
+
+        // Anda bisa tambahkan User::factory(10)->create(); di sini jika Anda ingin membuat user tambahan
     }
 }
