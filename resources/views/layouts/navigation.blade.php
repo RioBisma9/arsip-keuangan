@@ -39,12 +39,13 @@
                     </x-slot>
 
                     <x-slot name="content">
-                        {{-- **HAPUS PANGGILAN route('profile.edit') yang bermasalah** --}}
+                        {{-- Link Profil DIHAPUS (untuk menghindari error 'profile.edit' --}}
                         {{-- <x-dropdown-link :href="route('profile.edit')">
                             {{ __('Profile') }}
                         </x-dropdown-link> --}}
 
-                        <!-- Authentication -->
+                        <!-- Authentication / Logout -->
+                        {{-- **FORM INI MEMASTIKAN LOGOUT MENGGUNAKAN METODE POST DAN CSRF TOKEN** --}}
                         <form method="POST" action="{{ route('logout') }}">
                             @csrf
 
@@ -91,12 +92,12 @@
             </div>
 
             <div class="mt-3 space-y-1">
-                {{-- **HAPUS PANGGILAN route('profile.edit') yang bermasalah** --}}
+                {{-- Link Profil DIHAPUS --}}
                 {{-- <x-responsive-nav-link :href="route('profile.edit')">
                     {{ __('Profile') }}
                 </x-responsive-nav-link> --}}
 
-                <!-- Authentication -->
+                <!-- Authentication / Logout -->
                 <form method="POST" action="{{ route('logout') }}">
                     @csrf
 

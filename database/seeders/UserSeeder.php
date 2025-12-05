@@ -26,4 +26,4 @@ class UserSeeder extends Seeder
         // Contoh membuat 10 user dummy menggunakan factory
         // User::factory(10)->create();
     }
-}testest
+}
