@@ -1,3 +1,5 @@
+<?php
+
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\FolderController;
 use App\Http\Controllers\FileController;
@@ -18,14 +20,12 @@ Route::get('/', function () {
 });
 
 // Grup Rute yang HANYA membutuhkan autentikasi (user sudah login)
-// KAMI HAPUS middleware 'role:admin' dari sini
 Route::middleware(['auth'])->group(function () {
     
     // Rute Dashboard
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
 
     // Rute Folder
-    // {folder?} berarti ID folder bersifat opsional (NULL di Level 1)
     Route::get('/folders/{folder?}', [FolderController::class, 'index'])->name('folders.index');
     Route::post('/folders', [FolderController::class, 'store'])->name('folders.store');
     
